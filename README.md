@@ -1,5 +1,5 @@
 # Encrypt-Files 
 
-Encrypts files with an abstract account on Jackal.
+Demo to encrypts player actions, create data-proofs, store actions via Jackal, and update merkle-tree in `x/hash-ish`
 
 ## Workflow 

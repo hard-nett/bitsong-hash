@@ -7,14 +7,6 @@ const seed = ""
 const chain_id = "bitsong-2b"
 const fee_denom = "ubtsg"
 
-// 1. generate key.
-// 2. hash actions for each file from a specific listener addr
-// 3. encrypt actions w/ key.
-// 4. hash all listeners encrypted actions.
-// 5. create proof. (api generates signature with encrypted actions)
-// 6. upload encrypted actions to Jackal // TODO
-// 7. upload signature to `x/hash-ish` // TODO
-
 const kp = generateKeyPair();
 let aah = generateAllListenersActionsHash();
 signMessage(aah, seed).then(signedMsg => {
@@ -31,15 +23,16 @@ function generateKeyPair() {
     return { publicKey: sk.publicKey, secret: sk.secret };
 }
 
+// simulates action data from 5 addrs
 function generateAllListenersActionsHash() {
     const all_actions = [];
     for (let i = 0; i < 5; i++) {
         let actions = generateEncryptedActions(kp.publicKey.toHex())
         all_actions.push(actions)
     }
+    console.log(all_actions)
     return base64_hash(all_actions)
 }
-
 
 function generateEncryptedActions(pub) {
     let hashed_actions = base64_hash(generateJsonFile());
@@ -47,14 +40,7 @@ function generateEncryptedActions(pub) {
     return encrypted_actions
 }
 
-
-function base64_hash(ghad) {
-    console.log("hashing actions");
-    const jsonString = JSON.stringify(ghad);
-    const encoded = Buffer.from(jsonString).toString('base64');
-    return encoded;
-}
-
+// generates tracked actions on file addr for one address
 function generateJsonFile() {
     const actionTypes = ['a', 'b', 'c', 'd', 'e', 'f'];
     const actions = [];
@@ -67,7 +53,7 @@ function generateJsonFile() {
         }
         actions.push({ addr });
     }
-    // console.log(JSON.stringify(actions));
+    console.log(JSON.stringify(actions))
     return JSON.stringify(actions);
 }
 
@@ -78,7 +64,14 @@ function encrypt_actions(pub, actions) {
     return res;
 }
 
+function base64_hash(ghad) {
+    console.log("hashing actions");
+    const jsonString = JSON.stringify(ghad);
+    const encoded = Buffer.from(jsonString).toString('base64');
+    return encoded;
+}
 
+// sign AEA with key 
 async function signMessage(msg, mnemonic) {
     const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic);
     const accounts = await wallet.getAccounts();
@@ -113,8 +106,5 @@ async function signMessage(msg, mnemonic) {
 
     // sign with key
     const signed = await wallet.signDirect(signer, signDoc);
-    return signed;
+    return { signed, hash };
 }
-
-
-
